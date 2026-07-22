@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software or refer to this work, please cite it as below."
+title: "CNM-BERT: A Drop-In Structural Embedding for Chinese Characters via Ideographic Description Sequences"
+abstract: >-
+  Token-based encoders like BERT treat Chinese characters as atomic identifiers,
+  ignoring their recursive orthographic structure. The Compositional Network Model
+  (CNM) is a lightweight, drop-in augmentation that parses Ideographic Description
+  Sequences into trees, encodes them with a recursive Tree-MLP, and fuses the
+  resulting structural embeddings into BERT without modifying the backbone.
+type: software
+authors:
+  - family-names: Yan
+    given-names: Liqian
+    affiliation: "Shanghai Starriver Bilingual School; LinkScape"
+    email: eric@linkscape.app
+  - family-names: Wu
+    given-names: Thomas Sing-wing
+    affiliation: "Shanghai Starriver Bilingual School; LinkScape"
+    email: thomas@linkscape.app
+repository-code: "https://github.com/ericyan534-dev/cnm-bert"
+license: Apache-2.0
+version: 0.1.0
+keywords:
+  - natural language processing
+  - Chinese NLP
+  - BERT
+  - ideographic description sequences
+  - compositional representation
+  - out-of-vocabulary robustness
+preferred-citation:
+  type: unpublished
+  title: "CNM-BERT: A Drop-In Structural Embedding for Chinese Characters via Ideographic Description Sequences"
+  authors:
+    - family-names: Yan
+      given-names: Liqian
+    - family-names: Wu
+      given-names: Thomas Sing-wing
+  year: 2027
+  notes: "Manuscript submitted to ACL Rolling Review. Authors contributed equally."

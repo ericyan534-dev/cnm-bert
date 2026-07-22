@@ -10,7 +10,8 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10,<3.12"
 authors = [
-    {name = "Eric Yan"},
+    {name = "Liqian Yan", email = "eric@linkscape.app"},
+    {name = "Thomas Sing-wing Wu", email = "thomas@linkscape.app"},
 ]
 keywords = [
     "chinese",
@@ -61,16 +62,12 @@ corpus = [
     "wikitextparser>=0.55.0",
 ]
 
-[project.scripts]
-cnm-download-ids = "cnm.scripts.download_ids:main"
-cnm-prepare-ids = "cnm.scripts.prepare_ids:main"
-cnm-prepare-corpus = "cnm.scripts.prepare_corpus:main"
-cnm-pretrain = "cnm.scripts.pretrain:main"
-cnm-finetune = "cnm.scripts.finetune:main"
-cnm-evaluate = "cnm.scripts.evaluate:main"
+# Note: the pipeline entry points live in the top-level scripts/ directory and are
+# invoked directly (e.g. `python scripts/pretrain.py`). They are deliberately not
+# declared as console_scripts, since scripts/ is not part of the installed package.
 
 [project.urls]
-Repository = "https://github.com/ericyan/cnm"
+Repository = "https://github.com/ericyan534-dev/cnm-bert"
 
 [tool.setuptools.packages.find]
 where = ["src"]

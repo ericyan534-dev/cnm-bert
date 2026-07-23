@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Prepare pretraining corpus from multiple sources.
+"""Prepare pretraining corpus from multiple sources.
 
 Supports:
 1. Chinese Wikipedia dump
@@ -63,8 +62,7 @@ def clean_text(text: str) -> str:
 
 
 def extract_wiki_articles(dump_path: Path) -> Iterator[dict]:
-    """
-    Extract articles from Wikipedia XML dump (namespace-agnostic).
+    """Extract articles from Wikipedia XML dump (namespace-agnostic).
 
     Fixes:
       - Handles MediaWiki export namespace changes (e.g., export-0.11 vs export-0.10)
@@ -132,21 +130,19 @@ def extract_wiki_articles(dump_path: Path) -> Iterator[dict]:
     print(f"Finished parsing. Pages seen: {page_count}, articles yielded: {yield_count}")
 
 
-
 def load_clue_corpus(split: str = "train") -> Iterator[dict]:
-    """
-    Load a large Chinese corpus via HuggingFace datasets.
+    """Load a large Chinese corpus via HuggingFace datasets.
 
-    Fixes:
-      - Removes incorrect fallback to c4/zh (config doesn't exist)
-      - Removes broken fallback to wikipedia/20220301.zh that 404s on Wikimedia dumps
-      - Uses a reliable HF-hosted Chinese Wikipedia snapshot instead
-      - Adds trust_remote_code=True to silence FutureWarning and future-proof
+        Fixes:
+          - Removes incorrect fallback to c4/zh (config doesn't exist)
+          - Removes broken fallback to wikipedia/20220301.zh that 404s on Wikimedia dumps
+          - Uses a reliable HF-hosted Chinese Wikipedia snapshot instead
+          - Adds trust_remote_code=True to silence FutureWarning and future-proof
 
     Note:
-      - CLUECorpus2020 is officially distributed via the CLUE GitHub repo, not as an
-        official 'clue' Hub dataset in a way this script can reliably stream.
-      - So we use HF-hosted Wikipedia as a stable substitute unless you supply your own CLUE files.
+          - CLUECorpus2020 is officially distributed via the CLUE GitHub repo, not as an
+            official 'clue' Hub dataset in a way this script can reliably stream.
+          - So we use HF-hosted Wikipedia as a stable substitute unless you supply your own CLUE files.
     """
     if not HAS_DATASETS:
         raise ImportError("datasets library required. Install with: pip install datasets")
@@ -169,17 +165,7 @@ def load_clue_corpus(split: str = "train") -> Iterator[dict]:
             yield {"text": clean_text(text)}
 
 
-
 def load_text_files(directory: Path) -> Iterator[dict]:
-    """
-    Load text files from a directory.
-
-    Args:
-        directory: Directory containing .txt files
-
-    Yields:
-        Dict with 'text' field
-    """
     for filepath in directory.glob('**/*.txt'):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -197,18 +183,7 @@ def write_shards(
     shard_size: int = 100000,
     prefix: str = 'corpus',
 ) -> int:
-    """
-    Write data to sharded JSONL files.
-
-    Args:
-        data_iter: Iterator of dicts
-        output_dir: Output directory
-        shard_size: Number of records per shard
-        prefix: Filename prefix
-
-    Returns:
-        Total number of records written
-    """
+    """Write data to sharded JSONL files."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     total = 0

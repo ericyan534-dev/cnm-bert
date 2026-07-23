@@ -1,5 +1,4 @@
-"""
-CNM-BERT model implementations.
+"""CNM-BERT model implementations.
 
 This module provides CNM-BERT models that extend standard BERT with
 structural embeddings from Chinese character decomposition (IDS).
@@ -41,8 +40,7 @@ from cnm.model.tree_mlp import TreeMLPEncoder
 
 @dataclass
 class CNMPreTrainingOutput(ModelOutput):
-    """
-    Output for CNM pretraining with MLM and auxiliary losses.
+    """Output for CNM pretraining with MLM and auxiliary losses.
 
     Inherits from ModelOutput for DataParallel/DDP compatibility.
     """
@@ -56,8 +54,7 @@ class CNMPreTrainingOutput(ModelOutput):
 
 
 class CNMBertModel(BertPreTrainedModel):
-    """
-    CNM-BERT base model with fused structural embeddings.
+    """CNM-BERT base model with fused structural embeddings.
 
     This model extends BERT by:
     1. Adding Tree-MLP encoder for structural embeddings
@@ -71,12 +68,6 @@ class CNMBertModel(BertPreTrainedModel):
     config_class = CNMConfig
 
     def __init__(self, config: CNMConfig):
-        """
-        Initialize CNMBertModel.
-
-        Args:
-            config: CNMConfig with model parameters
-        """
         super().__init__(config)
         self.config = config
 
@@ -103,7 +94,6 @@ class CNMBertModel(BertPreTrainedModel):
         self.post_init()
 
     def get_input_embeddings(self) -> nn.Embedding:
-        """Get word embeddings."""
         return self.embeddings.word_embeddings
 
     def set_input_embeddings(self, value: nn.Embedding):
@@ -126,26 +116,22 @@ class CNMBertModel(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], BaseModelOutputWithPoolingAndCrossAttentions]:
-        """
-        Forward pass through CNM-BERT.
+        """Forward pass through CNM-BERT.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            attention_mask: [batch, seq] Attention mask
-            token_type_ids: [batch, seq] Segment IDs
-            position_ids: [batch, seq] Position IDs
-            unique_trees: BatchedTrees for unique characters
-            unique_to_position: [batch, seq] Mapping to unique char indices
-            head_mask: Head mask for attention
-            inputs_embeds: Pre-computed embeddings
-            encoder_hidden_states: For cross-attention
-            encoder_attention_mask: For cross-attention
-            output_attentions: Whether to output attention weights
-            output_hidden_states: Whether to output hidden states
-            return_dict: Whether to return dict or tuple
-
-        Returns:
-            Model outputs with last hidden state and pooled output
+                    input_ids: [batch, seq] Token IDs
+                    attention_mask: [batch, seq] Attention mask
+                    token_type_ids: [batch, seq] Segment IDs
+                    position_ids: [batch, seq] Position IDs
+                    unique_trees: BatchedTrees for unique characters
+                    unique_to_position: [batch, seq] Mapping to unique char indices
+                    head_mask: Head mask for attention
+                    inputs_embeds: Pre-computed embeddings
+                    encoder_hidden_states: For cross-attention
+                    encoder_attention_mask: For cross-attention
+                    output_attentions: Whether to output attention weights
+                    output_hidden_states: Whether to output hidden states
+                    return_dict: Whether to return dict or tuple
         """
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -220,17 +206,7 @@ class CNMBertModel(BertPreTrainedModel):
         cnm_config: Optional[CNMConfig] = None,
         **kwargs,
     ) -> "CNMBertModel":
-        """
-        Load pretrained BERT weights into CNM model.
-
-        Args:
-            bert_name_or_path: HuggingFace model name or path
-            cnm_config: CNMConfig (created from BERT config if not provided)
-            **kwargs: Additional arguments for from_pretrained
-
-        Returns:
-            CNMBertModel with pretrained BERT weights
-        """
+        """Load pretrained BERT weights into CNM model."""
         # Load BERT model
         bert = BertModel.from_pretrained(bert_name_or_path, **kwargs)
 
@@ -260,8 +236,7 @@ class CNMBertModel(BertPreTrainedModel):
 
 
 class CNMBertForPreTraining(BertPreTrainedModel):
-    """
-    CNM-BERT for pretraining with MLM and auxiliary component prediction.
+    """CNM-BERT for pretraining with MLM and auxiliary component prediction.
 
     This model has two training objectives:
     1. Masked Language Modeling (MLM): Standard BERT objective
@@ -274,12 +249,6 @@ class CNMBertForPreTraining(BertPreTrainedModel):
     config_class = CNMConfig
 
     def __init__(self, config: CNMConfig):
-        """
-        Initialize CNMBertForPreTraining.
-
-        Args:
-            config: CNMConfig with model parameters
-        """
         super().__init__(config)
 
         self.bert = CNMBertModel(config)
@@ -292,7 +261,6 @@ class CNMBertForPreTraining(BertPreTrainedModel):
         self.post_init()
 
     def get_output_embeddings(self) -> nn.Linear:
-        """Get output embeddings for MLM."""
         return self.cls.predictions.decoder
 
     def set_output_embeddings(self, new_embeddings: nn.Linear):
@@ -315,26 +283,22 @@ class CNMBertForPreTraining(BertPreTrainedModel):
         output_hidden_states: Optional[bool] = None,
         return_dict: Optional[bool] = None,
     ) -> Union[Tuple[torch.Tensor], CNMPreTrainingOutput]:
-        """
-        Forward pass for pretraining.
+        """Forward pass for pretraining.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            attention_mask: [batch, seq] Attention mask
-            token_type_ids: [batch, seq] Segment IDs
-            position_ids: [batch, seq] Position IDs
-            unique_trees: BatchedTrees for unique characters
-            unique_to_position: [batch, seq] Mapping to unique char indices
-            head_mask: Head mask for attention
-            inputs_embeds: Pre-computed embeddings
-            labels: [batch, seq] MLM labels (-100 for non-masked)
-            component_labels: [batch, seq, component_vocab] Multi-hot labels
-            output_attentions: Whether to output attention weights
-            output_hidden_states: Whether to output hidden states
-            return_dict: Whether to return dict or tuple
-
-        Returns:
-            CNMPreTrainingOutput with losses and logits
+                    input_ids: [batch, seq] Token IDs
+                    attention_mask: [batch, seq] Attention mask
+                    token_type_ids: [batch, seq] Segment IDs
+                    position_ids: [batch, seq] Position IDs
+                    unique_trees: BatchedTrees for unique characters
+                    unique_to_position: [batch, seq] Mapping to unique char indices
+                    head_mask: Head mask for attention
+                    inputs_embeds: Pre-computed embeddings
+                    labels: [batch, seq] MLM labels (-100 for non-masked)
+                    component_labels: [batch, seq, component_vocab] Multi-hot labels
+                    output_attentions: Whether to output attention weights
+                    output_hidden_states: Whether to output hidden states
+                    return_dict: Whether to return dict or tuple
         """
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
@@ -406,9 +370,7 @@ class CNMBertForPreTraining(BertPreTrainedModel):
 
 
 class CNMBertForSequenceClassification(BertPreTrainedModel):
-    """
-    CNM-BERT for sequence classification (CLUE benchmark tasks).
-    """
+    """CNM-BERT for sequence classification (CLUE benchmark tasks)."""
 
     config_class = CNMConfig
 
@@ -484,9 +446,7 @@ class CNMBertForSequenceClassification(BertPreTrainedModel):
 
 
 class CNMBertForTokenClassification(BertPreTrainedModel):
-    """
-    CNM-BERT for token classification (NER, POS tagging, etc.).
-    """
+    """CNM-BERT for token classification (NER, POS tagging, etc.)."""
 
     config_class = CNMConfig
 

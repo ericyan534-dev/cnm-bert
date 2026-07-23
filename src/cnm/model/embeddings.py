@@ -1,5 +1,4 @@
-"""
-Fused embeddings for CNM-BERT.
+"""Fused embeddings for CNM-BERT.
 
 This module implements CNMEmbeddings, which combines standard BERT embeddings
 with structural embeddings from the Tree-MLP encoder. The fusion uses an
@@ -24,8 +23,7 @@ from cnm.model.configuration_cnm import CNMConfig
 
 
 class CNMEmbeddings(nn.Module):
-    """
-    Fused embedding layer combining BERT and structural embeddings.
+    """Fused embedding layer combining BERT and structural embeddings.
 
     This layer:
     1. Computes standard BERT embeddings (word + position + token_type)
@@ -35,26 +33,9 @@ class CNMEmbeddings(nn.Module):
 
     The fusion layer is initialized with Identity+Zero to preserve
     pretrained BERT embeddings at initialization.
-
-    Attributes:
-        word_embeddings: Standard BERT word embeddings
-        position_embeddings: Position embeddings
-        token_type_embeddings: Segment embeddings
-        LayerNorm: Layer normalization
-        dropout: Dropout layer
-        tree_encoder: Tree-MLP for structural embeddings
-        fallback_struct: Learnable fallback for non-decomposable tokens
-        fusion: Linear layer for fusing BERT + structural embeddings
     """
 
     def __init__(self, config: CNMConfig, tree_encoder: Optional[TreeMLPEncoder] = None):
-        """
-        Initialize CNMEmbeddings.
-
-        Args:
-            config: CNMConfig with model parameters
-            tree_encoder: Pre-built TreeMLPEncoder (or None to create new)
-        """
         super().__init__()
         self.config = config
 
@@ -114,8 +95,7 @@ class CNMEmbeddings(nn.Module):
         )
 
     def _init_fusion_weights(self):
-        """
-        Initialize fusion layer to preserve BERT embeddings.
+        """Initialize fusion layer to preserve BERT embeddings.
 
         Strategy: Identity + Zero
         - Weights for BERT portion: Identity matrix
@@ -147,20 +127,16 @@ class CNMEmbeddings(nn.Module):
         position_ids: Optional[torch.LongTensor] = None,
         inputs_embeds: Optional[torch.FloatTensor] = None,
     ) -> torch.FloatTensor:
-        """
-        Compute fused embeddings.
+        """Compute fused embeddings.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            struct_ids: [batch, seq] Structural token IDs (indices into unique chars)
-            unique_trees: BatchedTrees for unique characters in batch
-            unique_to_position: [batch, seq] Mapping from positions to unique char indices
-            token_type_ids: [batch, seq] Segment IDs
-            position_ids: [batch, seq] Position IDs
-            inputs_embeds: [batch, seq, hidden] Pre-computed embeddings (optional)
-
-        Returns:
-            [batch, seq, hidden_size] Fused embeddings
+                    input_ids: [batch, seq] Token IDs
+                    struct_ids: [batch, seq] Structural token IDs (indices into unique chars)
+                    unique_trees: BatchedTrees for unique characters in batch
+                    unique_to_position: [batch, seq] Mapping from positions to unique char indices
+                    token_type_ids: [batch, seq] Segment IDs
+                    position_ids: [batch, seq] Position IDs
+                    inputs_embeds: [batch, seq, hidden] Pre-computed embeddings (optional)
         """
         if inputs_embeds is None:
             inputs_embeds = self.word_embeddings(input_ids)
@@ -202,17 +178,13 @@ class CNMEmbeddings(nn.Module):
         batch_size: int,
         seq_length: int,
     ) -> torch.FloatTensor:
-        """
-        Compute and scatter structural embeddings.
+        """Compute and scatter structural embeddings.
 
         Args:
-            unique_trees: BatchedTrees for unique characters
-            unique_to_position: [batch, seq] Mapping to unique char indices
-            batch_size: Batch size
-            seq_length: Sequence length
-
-        Returns:
-            [batch, seq, struct_dim] Structural embeddings
+                    unique_trees: BatchedTrees for unique characters
+                    unique_to_position: [batch, seq] Mapping to unique char indices
+                    batch_size: Batch size
+                    seq_length: Sequence length
         """
         device = self.word_embeddings.weight.device
 
@@ -254,12 +226,7 @@ class CNMEmbeddings(nn.Module):
         return struct_embeds
 
     def load_bert_embeddings(self, bert_embeddings: nn.Module):
-        """
-        Load pretrained BERT embedding weights.
-
-        Args:
-            bert_embeddings: BertEmbeddings module to copy from
-        """
+        """Load pretrained BERT embedding weights."""
         with torch.no_grad():
             self.word_embeddings.weight.copy_(bert_embeddings.word_embeddings.weight)
             self.position_embeddings.weight.copy_(bert_embeddings.position_embeddings.weight)
@@ -269,8 +236,7 @@ class CNMEmbeddings(nn.Module):
 
 
 class StructEmbeddingProcessor:
-    """
-    Helper class to prepare structural embeddings for a batch.
+    """Helper class to prepare structural embeddings for a batch.
 
     This class handles:
     1. Extracting unique characters from input_ids
@@ -284,13 +250,6 @@ class StructEmbeddingProcessor:
     """
 
     def __init__(self, tokenizer, cnm_vocab):
-        """
-        Initialize processor.
-
-        Args:
-            tokenizer: BERT tokenizer for converting IDs to tokens
-            cnm_vocab: CNMVocab for building trees
-        """
         self.tokenizer = tokenizer
         self.cnm_vocab = cnm_vocab
 
@@ -313,15 +272,11 @@ class StructEmbeddingProcessor:
         input_ids: torch.LongTensor,
         device: Optional[torch.device] = None,
     ) -> tuple[BatchedTrees, torch.LongTensor]:
-        """
-        Prepare structural embeddings for a batch.
+        """Prepare structural embeddings for a batch.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            device: Device for output tensors
-
-        Returns:
-            Tuple of (BatchedTrees, [batch, seq] mapping tensor)
+                    input_ids: [batch, seq] Token IDs
+                    device: Device for output tensors
         """
         batch_size, seq_length = input_ids.shape
 

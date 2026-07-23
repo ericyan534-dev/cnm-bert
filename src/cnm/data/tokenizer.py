@@ -1,5 +1,4 @@
-"""
-Dual-stream tokenizer for CNM-BERT.
+"""Dual-stream tokenizer for CNM-BERT.
 
 This tokenizer extends BERT tokenization with structural IDs (struct_ids)
 that map each token to its IDS tree representation.
@@ -20,16 +19,10 @@ from cnm.data.tree import BatchedTrees
 
 
 class CNMTokenizer(BertTokenizerFast):
-    """
-    Tokenizer for CNM-BERT with dual-stream output.
+    """Tokenizer for CNM-BERT with dual-stream output.
 
     Extends BertTokenizerFast to also output struct_ids, which map
     each token position to its structural representation.
-
-    Attributes:
-        cnm_vocab: CNMVocab for structural embeddings
-        token_to_char: Mapping from token IDs to single CJK characters
-        char_to_struct_id: Mapping from characters to structural indices
     """
 
     def __init__(
@@ -39,15 +32,6 @@ class CNMTokenizer(BertTokenizerFast):
         cnm_vocab_file: Optional[str] = None,
         **kwargs,
     ):
-        """
-        Initialize CNMTokenizer.
-
-        Args:
-            vocab_file: Path to BERT vocabulary file
-            cnm_vocab: Pre-built CNMVocab instance
-            cnm_vocab_file: Path to saved CNMVocab JSON
-            **kwargs: Additional arguments for BertTokenizerFast
-        """
         super().__init__(vocab_file=vocab_file, **kwargs)
 
         # Load CNM vocabulary
@@ -85,17 +69,7 @@ class CNMTokenizer(BertTokenizerFast):
         return_struct_ids: bool = True,
         **kwargs,
     ) -> BatchEncoding:
-        """
-        Tokenize text with optional structural IDs.
-
-        Args:
-            text: Input text or list of texts
-            return_struct_ids: Whether to include struct_ids
-            **kwargs: Additional arguments for tokenization
-
-        Returns:
-            BatchEncoding with input_ids, attention_mask, and optionally struct_ids
-        """
+        """Tokenize text with optional structural IDs."""
         # --- FIX: Some bad init paths (e.g. __new__ hacks) miss this HF internal flag.
         # Newer Transformers expects it in PreTrainedTokenizerBase.__call__.
         if not hasattr(self, "_in_target_context_manager"):
@@ -116,17 +90,10 @@ class CNMTokenizer(BertTokenizerFast):
         self,
         input_ids: Union[List[int], List[List[int]], torch.Tensor],
     ) -> Union[List[int], List[List[int]]]:
-        """
-        Compute structural IDs for input tokens.
+        """Compute structural IDs for input tokens.
 
         For CJK characters with IDS decomposition, returns the index
         into the unique character list. For other tokens, returns -1.
-
-        Args:
-            input_ids: Token IDs from tokenization
-
-        Returns:
-            Structural IDs matching input shape
         """
         if isinstance(input_ids, torch.Tensor):
             input_ids = input_ids.tolist()
@@ -138,7 +105,6 @@ class CNMTokenizer(BertTokenizerFast):
         return self._compute_struct_ids_single(input_ids)
 
     def _compute_struct_ids_single(self, input_ids: List[int]) -> List[int]:
-        """Compute struct_ids for a single sequence."""
         struct_ids = []
 
         for token_id in input_ids:
@@ -159,15 +125,11 @@ class CNMTokenizer(BertTokenizerFast):
         input_ids: torch.LongTensor,
         device: Optional[torch.device] = None,
     ) -> tuple:
-        """
-        Prepare structural inputs for model forward pass.
+        """Prepare structural inputs for model forward pass.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            device: Device for output tensors
-
-        Returns:
-            Tuple of (unique_trees: BatchedTrees, unique_to_position: Tensor)
+                    input_ids: [batch, seq] Token IDs
+                    device: Device for output tensors
         """
         if self.cnm_vocab is None:
             raise ValueError("CNM vocabulary not loaded")
@@ -223,19 +185,7 @@ class CNMTokenizer(BertTokenizerFast):
         cnm_vocab: Optional[CNMVocab] = None,
         **kwargs,
     ) -> "CNMTokenizer":
-        """
-        Load tokenizer from pretrained BERT or local path.
-
-        Args:
-            pretrained_model_name_or_path: HuggingFace model name (e.g., 'bert-base-chinese')
-                                           or local path to saved tokenizer
-            cnm_vocab_file: Path to CNM vocabulary (auto-detected if not provided)
-            cnm_vocab: Pre-loaded CNMVocab instance
-            **kwargs: Additional arguments for BertTokenizerFast
-
-        Returns:
-            CNMTokenizer instance
-        """
+        """Load tokenizer from pretrained BERT or local path."""
         path = Path(pretrained_model_name_or_path)
 
         # Auto-detect CNM vocab from local path
@@ -274,14 +224,5 @@ def create_cnm_tokenizer(
     bert_tokenizer_name: str = 'bert-base-chinese',
     cnm_vocab: Optional[CNMVocab] = None,
 ) -> CNMTokenizer:
-    """
-    Create a CNMTokenizer from a pretrained BERT tokenizer.
-
-    Args:
-        bert_tokenizer_name: HuggingFace tokenizer name
-        cnm_vocab: CNMVocab instance
-
-    Returns:
-        CNMTokenizer instance
-    """
+    """Create a CNMTokenizer from a pretrained BERT tokenizer."""
     return CNMTokenizer.from_pretrained(bert_tokenizer_name, cnm_vocab=cnm_vocab)

@@ -1,5 +1,4 @@
-"""
-Loss functions for CNM-BERT training.
+"""Loss functions for CNM-BERT training.
 
 Includes:
 - Standard MLM loss
@@ -17,20 +16,13 @@ import torch.nn.functional as F
 
 
 class MLMLoss(nn.Module):
-    """
-    Masked Language Modeling loss.
+    """Masked Language Modeling loss.
 
     Standard cross-entropy loss on masked positions only.
     """
 
     def __init__(self, vocab_size: int, ignore_index: int = -100):
-        """
-        Initialize MLM loss.
-
-        Args:
-            vocab_size: Size of vocabulary
-            ignore_index: Label value to ignore (default: -100)
-        """
+        """Initialize MLM loss."""
         super().__init__()
         self.vocab_size = vocab_size
         self.ignore_index = ignore_index
@@ -40,15 +32,11 @@ class MLMLoss(nn.Module):
         prediction_scores: torch.FloatTensor,
         labels: torch.LongTensor,
     ) -> torch.FloatTensor:
-        """
-        Compute MLM loss.
+        """Compute MLM loss.
 
         Args:
-            prediction_scores: [batch, seq, vocab_size] Logits
-            labels: [batch, seq] Target token IDs (-100 for non-masked)
-
-        Returns:
-            Scalar loss tensor
+                    prediction_scores: [batch, seq, vocab_size] Logits
+                    labels: [batch, seq] Target token IDs (-100 for non-masked)
         """
         return F.cross_entropy(
             prediction_scores.view(-1, self.vocab_size),
@@ -58,8 +46,7 @@ class MLMLoss(nn.Module):
 
 
 class ComponentPredictionLoss(nn.Module):
-    """
-    Auxiliary loss for predicting character components.
+    """Auxiliary loss for predicting character components.
 
     Multi-label binary cross-entropy on masked positions.
     This encourages the model to retain structural information.
@@ -70,13 +57,7 @@ class ComponentPredictionLoss(nn.Module):
         component_vocab_size: int,
         pos_weight: Optional[torch.Tensor] = None,
     ):
-        """
-        Initialize component prediction loss.
-
-        Args:
-            component_vocab_size: Number of unique components
-            pos_weight: Optional positive class weights for imbalanced data
-        """
+        """Initialize component prediction loss."""
         super().__init__()
         self.component_vocab_size = component_vocab_size
         self.pos_weight = pos_weight
@@ -87,18 +68,14 @@ class ComponentPredictionLoss(nn.Module):
         component_labels: torch.FloatTensor,
         mlm_labels: torch.LongTensor,
     ) -> torch.FloatTensor:
-        """
-        Compute component prediction loss.
+        """Compute component prediction loss.
 
-        Only computes loss on masked positions (where mlm_labels != -100).
+                Only computes loss on masked positions (where mlm_labels != -100).
 
         Args:
-            component_logits: [batch, seq, component_vocab] Logits
-            component_labels: [batch, seq, component_vocab] Multi-hot targets
-            mlm_labels: [batch, seq] MLM labels to identify masked positions
-
-        Returns:
-            Scalar loss tensor
+                    component_logits: [batch, seq, component_vocab] Logits
+                    component_labels: [batch, seq, component_vocab] Multi-hot targets
+                    mlm_labels: [batch, seq] MLM labels to identify masked positions
         """
         # Get masked positions
         masked_positions = mlm_labels != -100
@@ -119,8 +96,7 @@ class ComponentPredictionLoss(nn.Module):
 
 
 class CNMPretrainingLoss(nn.Module):
-    """
-    Combined loss for CNM-BERT pretraining.
+    """Combined loss for CNM-BERT pretraining.
 
     Loss = MLM_loss + aux_weight * Component_loss
     """
@@ -132,15 +108,7 @@ class CNMPretrainingLoss(nn.Module):
         aux_loss_weight: float = 0.1,
         ignore_index: int = -100,
     ):
-        """
-        Initialize combined pretraining loss.
-
-        Args:
-            vocab_size: BERT vocabulary size
-            component_vocab_size: Number of unique components
-            aux_loss_weight: Weight for auxiliary loss
-            ignore_index: Label value to ignore
-        """
+        """Initialize combined pretraining loss."""
         super().__init__()
         self.mlm_loss = MLMLoss(vocab_size, ignore_index)
         self.component_loss = ComponentPredictionLoss(component_vocab_size)
@@ -153,17 +121,13 @@ class CNMPretrainingLoss(nn.Module):
         labels: torch.LongTensor,
         component_labels: Optional[torch.FloatTensor] = None,
     ) -> Tuple[torch.FloatTensor, torch.FloatTensor, Optional[torch.FloatTensor]]:
-        """
-        Compute combined loss.
+        """Compute combined loss.
 
         Args:
-            prediction_scores: [batch, seq, vocab] MLM logits
-            component_logits: [batch, seq, component_vocab] Component logits
-            labels: [batch, seq] MLM targets
-            component_labels: [batch, seq, component_vocab] Component targets
-
-        Returns:
-            Tuple of (total_loss, mlm_loss, aux_loss)
+                    prediction_scores: [batch, seq, vocab] MLM logits
+                    component_logits: [batch, seq, component_vocab] Component logits
+                    labels: [batch, seq] MLM targets
+                    component_labels: [batch, seq, component_vocab] Component targets
         """
         mlm_loss = self.mlm_loss(prediction_scores, labels)
 
@@ -178,8 +142,7 @@ class CNMPretrainingLoss(nn.Module):
 
 
 class FocalLoss(nn.Module):
-    """
-    Focal Loss for handling class imbalance.
+    """Focal Loss for handling class imbalance.
 
     Useful for component prediction where some components are rare.
 
@@ -192,14 +155,7 @@ class FocalLoss(nn.Module):
         gamma: float = 2.0,
         reduction: str = 'mean',
     ):
-        """
-        Initialize Focal Loss.
-
-        Args:
-            alpha: Weighting factor for positive class
-            gamma: Focusing parameter (higher = more focus on hard examples)
-            reduction: 'mean', 'sum', or 'none'
-        """
+        """Initialize Focal Loss."""
         super().__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -210,15 +166,11 @@ class FocalLoss(nn.Module):
         inputs: torch.FloatTensor,
         targets: torch.FloatTensor,
     ) -> torch.FloatTensor:
-        """
-        Compute Focal Loss.
+        """Compute Focal Loss.
 
         Args:
-            inputs: [*, num_classes] Logits
-            targets: [*, num_classes] Binary targets
-
-        Returns:
-            Loss tensor
+                    inputs: [*, num_classes] Logits
+                    targets: [*, num_classes] Binary targets
         """
         p = torch.sigmoid(inputs)
         ce_loss = F.binary_cross_entropy_with_logits(
@@ -244,9 +196,7 @@ class FocalLoss(nn.Module):
 
 
 class LabelSmoothingLoss(nn.Module):
-    """
-    Label smoothing for MLM to improve generalization.
-    """
+    """Label smoothing for MLM to improve generalization."""
 
     def __init__(
         self,
@@ -254,14 +204,7 @@ class LabelSmoothingLoss(nn.Module):
         smoothing: float = 0.1,
         ignore_index: int = -100,
     ):
-        """
-        Initialize label smoothing loss.
-
-        Args:
-            vocab_size: Vocabulary size
-            smoothing: Smoothing factor (0 = no smoothing)
-            ignore_index: Index to ignore
-        """
+        """Initialize label smoothing loss."""
         super().__init__()
         self.vocab_size = vocab_size
         self.smoothing = smoothing
@@ -272,15 +215,11 @@ class LabelSmoothingLoss(nn.Module):
         prediction_scores: torch.FloatTensor,
         labels: torch.LongTensor,
     ) -> torch.FloatTensor:
-        """
-        Compute label-smoothed cross entropy.
+        """Compute label-smoothed cross entropy.
 
         Args:
-            prediction_scores: [batch, seq, vocab] Logits
-            labels: [batch, seq] Targets
-
-        Returns:
-            Scalar loss
+                    prediction_scores: [batch, seq, vocab] Logits
+                    labels: [batch, seq] Targets
         """
         # Reshape
         logits = prediction_scores.view(-1, self.vocab_size)

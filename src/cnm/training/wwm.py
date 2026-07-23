@@ -1,5 +1,4 @@
-"""
-Whole Word Masking (WWM) utilities for Chinese text.
+"""Whole Word Masking (WWM) utilities for Chinese text.
 
 Chinese text doesn't have explicit word boundaries, so we use
 word segmentation (jieba) to determine masking units.
@@ -17,16 +16,6 @@ def get_chinese_word_boundaries(
     text: str,
     segmenter=None,
 ) -> List[Tuple[int, int]]:
-    """
-    Get word boundaries in Chinese text.
-
-    Args:
-        text: Chinese text string
-        segmenter: Word segmenter (jieba-like), uses jieba if None
-
-    Returns:
-        List of (start, end) character positions for each word
-    """
     if segmenter is None:
         import jieba
         segmenter = jieba
@@ -49,17 +38,13 @@ def create_wwm_mask(
     mlm_probability: float = 0.15,
     special_token_ids: Optional[Set[int]] = None,
 ) -> torch.BoolTensor:
-    """
-    Create Whole Word Masking mask for a batch.
+    """Create Whole Word Masking mask for a batch.
 
     Args:
-        input_ids: [batch, seq] Token IDs
-        tokenizer: Tokenizer for converting IDs to tokens
-        mlm_probability: Probability of masking a word
-        special_token_ids: Set of special token IDs to never mask
-
-    Returns:
-        [batch, seq] Boolean mask where True = mask this position
+            input_ids: [batch, seq] Token IDs
+            tokenizer: Tokenizer for converting IDs to tokens
+            mlm_probability: Probability of masking a word
+            special_token_ids: Set of special token IDs to never mask
     """
     import jieba
 
@@ -154,21 +139,17 @@ def apply_wwm_masking(
     tokenizer,
     vocab_size: int,
 ) -> Tuple[torch.LongTensor, torch.LongTensor]:
-    """
-    Apply masking to input_ids based on WWM mask.
+    """Apply masking to input_ids based on WWM mask.
 
-    80% -> [MASK]
-    10% -> random token
-    10% -> original
+        80% -> [MASK]
+        10% -> random token
+        10% -> original
 
     Args:
-        input_ids: [batch, seq] Original token IDs
-        mask: [batch, seq] Boolean mask
-        tokenizer: Tokenizer for special tokens
-        vocab_size: Vocabulary size for random replacement
-
-    Returns:
-        Tuple of (masked_input_ids, labels)
+            input_ids: [batch, seq] Original token IDs
+            mask: [batch, seq] Boolean mask
+            tokenizer: Tokenizer for special tokens
+            vocab_size: Vocabulary size for random replacement
     """
     labels = input_ids.clone()
     masked_input_ids = input_ids.clone()
@@ -193,8 +174,7 @@ def apply_wwm_masking(
 
 
 class WholeWordMasker:
-    """
-    Class for applying Whole Word Masking to Chinese text.
+    """Class for applying Whole Word Masking to Chinese text.
 
     Usage:
         masker = WholeWordMasker(tokenizer, mlm_probability=0.15)
@@ -207,14 +187,6 @@ class WholeWordMasker:
         mlm_probability: float = 0.15,
         special_token_ids: Optional[Set[int]] = None,
     ):
-        """
-        Initialize WholeWordMasker.
-
-        Args:
-            tokenizer: Tokenizer instance
-            mlm_probability: Probability of masking each word
-            special_token_ids: IDs to never mask (auto-detected if None)
-        """
         self.tokenizer = tokenizer
         self.mlm_probability = mlm_probability
         self.vocab_size = len(tokenizer)
@@ -239,14 +211,10 @@ class WholeWordMasker:
         self,
         input_ids: torch.LongTensor,
     ) -> Tuple[torch.LongTensor, torch.LongTensor]:
-        """
-        Apply WWM to input_ids.
+        """Apply WWM to input_ids.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-
-        Returns:
-            Tuple of (masked_input_ids, labels)
+                    input_ids: [batch, seq] Token IDs
         """
         mask = create_wwm_mask(
             input_ids,

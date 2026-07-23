@@ -1,5 +1,4 @@
-"""
-CNM: Compositional Network Model for Chinese Pre-trained Language Models.
+"""CNM: Compositional Network Model for Chinese Pre-trained Language Models.
 
 This package implements CNM-BERT, which treats Chinese characters as recursive
 compositional functions of their sub-components (radicals and operators).

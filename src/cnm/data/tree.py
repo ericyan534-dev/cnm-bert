@@ -1,5 +1,4 @@
-"""
-Tree data structures for representing Chinese character decompositions.
+"""Tree data structures for representing Chinese character decompositions.
 
 This module defines the core data structures used to represent IDS
 (Ideographic Description Sequences) trees and their batched forms
@@ -39,19 +38,11 @@ IDC_ARITY: Dict[str, int] = {
 
 @dataclass(frozen=True)
 class IDSTree:
-    """
-    Immutable tree representation of a Chinese character's IDS decomposition.
+    """Immutable tree representation of a Chinese character's IDS decomposition.
 
     The tree is structured as follows:
     - Leaf nodes represent atomic components (radicals or undecomposable characters)
     - Internal nodes have an IDC operator and 2-3 children (depending on operator arity)
-
-    Attributes:
-        char: The character this tree represents (for debugging/reference)
-        operator: The IDC operator at this node, or None for leaf nodes
-        children: Tuple of child trees (empty for leaves, 2-3 for internal nodes)
-        depth: The depth of this subtree (leaves have depth 0)
-        is_pua: Whether this character is in a Private Use Area
     """
     char: str
     operator: Optional[str] = None
@@ -123,18 +114,7 @@ class IDSTree:
         unk_component_id: int = 1,
         unk_operator_id: int = 1,
     ) -> "IndexedTree":
-        """
-        Convert to IndexedTree with integer indices.
-
-        Args:
-            component_to_id: Mapping from component chars to indices
-            operator_to_id: Mapping from operators to indices
-            unk_component_id: ID for unknown components (default: 1)
-            unk_operator_id: ID for unknown operators (default: 1)
-
-        Returns:
-            IndexedTree with the same structure but integer indices
-        """
+        """Convert to IndexedTree with integer indices."""
         if self.is_leaf:
             comp_id = component_to_id.get(self.char, unk_component_id)
             return IndexedTree(
@@ -175,17 +155,10 @@ class IDSTree:
 
 @dataclass(frozen=True)
 class IndexedTree:
-    """
-    Tree with integer indices instead of string characters/operators.
+    """Tree with integer indices instead of string characters/operators.
 
     This is an intermediate representation used for batching multiple trees
     into tensor form.
-
-    Attributes:
-        component_id: Index into component embedding (0 for internal nodes)
-        operator_id: Index into operator embedding (0 for leaves)
-        children: Tuple of child IndexedTrees
-        depth: Depth of this subtree
     """
     component_id: int
     operator_id: int
@@ -205,26 +178,11 @@ class IndexedTree:
 
 @dataclass
 class BatchedTrees:
-    """
-    Batched representation of multiple trees for efficient GPU processing.
+    """Batched representation of multiple trees for efficient GPU processing.
 
     Trees are flattened into level-ordered arrays, allowing vectorized
     bottom-up computation where all nodes at the same depth level are
     processed simultaneously.
-
-    Attributes:
-        component_ids: [num_nodes] Component indices (0 for internal nodes)
-        operator_ids: [num_nodes] Operator indices (0 for leaves)
-        left_child: [num_nodes] Index of left child (-1 for leaves)
-        right_child: [num_nodes] Index of right child (-1 for leaves)
-        third_child: [num_nodes] Index of third child for ternary ops (-1 otherwise)
-        parent: [num_nodes] Index of parent node (-1 for roots)
-        depth: [num_nodes] Depth of each node
-        is_leaf: [num_nodes] Boolean mask for leaf nodes
-        root_indices: [batch_size] Indices of root nodes
-        batch_size: Number of trees in batch
-        max_depth: Maximum depth across all trees
-        num_nodes: Total number of nodes
     """
     component_ids: torch.LongTensor
     operator_ids: torch.LongTensor
@@ -266,18 +224,10 @@ class BatchedTrees:
         trees: List[IndexedTree],
         device: Optional[torch.device] = None,
     ) -> "BatchedTrees":
-        """
-        Batch multiple IndexedTrees into a single BatchedTrees structure.
+        """Batch multiple IndexedTrees into a single BatchedTrees structure.
 
         The trees are flattened in level order (breadth-first), with nodes
         at the same depth level grouped together for efficient processing.
-
-        Args:
-            trees: List of IndexedTree objects to batch
-            device: Optional device to place tensors on
-
-        Returns:
-            BatchedTrees containing all trees
         """
         if not trees:
             raise ValueError("Cannot batch empty list of trees")
@@ -366,8 +316,7 @@ def _flatten_tree(
     depth: torch.Tensor,
     is_leaf: torch.Tensor,
 ) -> int:
-    """
-    Flatten a tree into the pre-allocated arrays.
+    """Flatten a tree into the pre-allocated arrays.
 
     Returns the next available node index.
     """

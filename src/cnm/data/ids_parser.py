@@ -1,5 +1,4 @@
-"""
-IDS (Ideographic Description Sequences) parser for Chinese characters.
+"""IDS (Ideographic Description Sequences) parser for Chinese characters.
 
 This module parses IDS strings into tree structures, handling:
 - Multiple decomposition alternatives (prefers shortest non-leaf tree)
@@ -60,19 +59,12 @@ def is_cjk(char: str) -> bool:
 
 
 def normalize_ids_value(value: Union[str, List[str]]) -> List[str]:
-    """
-    Normalize an IDS value that may be a string or list.
+    """Normalize an IDS value that may be a string or list.
 
     Handles cases where the data source provides:
     - A single string with ^ separators: "^⿰女子$(GHTJKPV)"
     - A list of strings: ["⿰女子", "⿱女子"]
     - A string that looks like a list
-
-    Args:
-        value: Either a string or list of strings
-
-    Returns:
-        List of cleaned IDS strings
     """
     if isinstance(value, list):
         # Already a list, but each element might still need cleaning
@@ -89,15 +81,7 @@ def normalize_ids_value(value: Union[str, List[str]]) -> List[str]:
 
 
 def _clean_ids_string(ids_string: str) -> List[str]:
-    """
-    Clean a single IDS string by removing annotations and splitting alternatives.
-
-    Args:
-        ids_string: Raw IDS string
-
-    Returns:
-        List of cleaned IDS alternatives
-    """
+    """Clean a single IDS string by removing annotations and splitting alternatives."""
     if not ids_string:
         return []
 
@@ -150,19 +134,13 @@ class ParseResult:
 
 
 class IDSParser:
-    """
-    Parser for converting IDS strings into IDSTree structures.
+    """Parser for converting IDS strings into IDSTree structures.
 
     The parser handles:
     - Multiple decomposition alternatives: selects the shortest tree
     - Circular dependencies: detects cycles and returns atomic leaf
     - Maximum depth limits: truncates to leaf node if exceeded
     - PUA characters: marks them with is_pua flag
-
-    Attributes:
-        raw_ids: Mapping from characters to lists of IDS strings
-        max_depth: Maximum allowed tree depth before truncation
-        cache: Cache of parsed trees for efficiency
     """
 
     def __init__(
@@ -171,13 +149,12 @@ class IDSParser:
         ids_path: Optional[Path] = None,
         max_depth: int = 6,
     ):
-        """
-        Initialize the parser.
+        """Initialize the parser.
 
         Args:
-            ids_data: Pre-loaded dictionary of char -> IDS sequences (str or List[str])
-            ids_path: Path to JSON file with IDS data
-            max_depth: Maximum tree depth before truncation (default: 6)
+                    ids_data: Pre-loaded dictionary of char -> IDS sequences (str or List[str])
+                    ids_path: Path to JSON file with IDS data
+                    max_depth: Maximum tree depth before truncation (default: 6)
         """
         self.max_depth = max_depth
         self._cache: Dict[str, IDSTree] = {}
@@ -199,18 +176,10 @@ class IDSParser:
                 self.raw_ids[char] = normalized
 
     def parse(self, char: str, current_depth: int = 0) -> IDSTree:
-        """
-        Parse a character into an IDSTree.
+        """Parse a character into an IDSTree.
 
         This is the main entry point. It handles caching, cycle detection,
         and selects the shortest decomposition among alternatives.
-
-        Args:
-            char: The character to parse
-            current_depth: Current recursion depth (for max depth check)
-
-        Returns:
-            IDSTree representing the character's structure
         """
         # Check cache first
         if char in self._cache:
@@ -271,19 +240,10 @@ class IDSParser:
     def _parse_ids_string(
         self, ids_string: str, root_char: str, current_depth: int
     ) -> ParseResult:
-        """
-        Parse a single IDS string into a tree.
+        """Parse a single IDS string into a tree.
 
         IDS strings have the format: <operator><component1><component2>[<component3>]
         where components can themselves be IDS strings (nested structure).
-
-        Args:
-            ids_string: The IDS string to parse
-            root_char: The character this tree represents
-            current_depth: Current recursion depth
-
-        Returns:
-            ParseResult with the parsed tree and metadata
         """
         if not ids_string:
             return ParseResult(tree=None, depth=0, success=False, error="Empty IDS string")
@@ -308,12 +268,7 @@ class IDSParser:
         root_char: str,
         current_depth: int,
     ) -> Tuple[Optional[IDSTree], int]:
-        """
-        Parse an IDS expression starting at position pos.
-
-        Returns:
-            Tuple of (parsed tree, number of characters consumed)
-        """
+        """Parse an IDS expression starting at position pos."""
         if pos >= len(ids_string):
             return None, pos
 
@@ -348,27 +303,14 @@ class IDSParser:
         return IDSTree.leaf(char, is_pua=is_pua(char)), pos + 1
 
     def parse_all(self, chars: Set[str]) -> Dict[str, IDSTree]:
-        """
-        Parse all characters in a set.
-
-        Args:
-            chars: Set of characters to parse
-
-        Returns:
-            Dictionary mapping characters to their parsed trees
-        """
+        """Parse all characters in a set."""
         result = {}
         for char in chars:
             result[char] = self.parse(char)
         return result
 
     def get_all_components(self) -> Set[str]:
-        """
-        Get all unique atomic components across all parsed trees.
-
-        Returns:
-            Set of component characters
-        """
+        """Get all unique atomic components across all parsed trees."""
         components: Set[str] = set()
         for tree in self._cache.values():
             for leaf in tree.leaves():
@@ -376,12 +318,7 @@ class IDSParser:
         return components
 
     def get_all_operators(self) -> Set[str]:
-        """
-        Get all unique operators used across all parsed trees.
-
-        Returns:
-            Set of IDC operators
-        """
+        """Get all unique operators used across all parsed trees."""
         operators: Set[str] = set()
         for tree in self._cache.values():
             for op in tree.operators():
@@ -389,12 +326,7 @@ class IDSParser:
         return operators
 
     def compute_depth_distribution(self) -> Dict[int, int]:
-        """
-        Compute distribution of tree depths in the cache.
-
-        Returns:
-            Dictionary mapping depth to count
-        """
+        """Compute distribution of tree depths in the cache."""
         distribution: Dict[int, int] = {}
         for tree in self._cache.values():
             depth = tree.depth
@@ -402,7 +334,6 @@ class IDSParser:
         return distribution
 
     def clear_cache(self) -> None:
-        """Clear the parse cache."""
         self._cache.clear()
 
     @property
@@ -411,8 +342,7 @@ class IDSParser:
         return len(self._cache)
 
     def save_cache(self, path: Path) -> None:
-        """
-        Save the parse cache to a file.
+        """Save the parse cache to a file.
 
         The cache is saved as a JSON file with serialized tree structures.
         """
@@ -463,16 +393,7 @@ def _deserialize_tree(data: Dict) -> IDSTree:
 def estimate_ids_coverage(
     parser: IDSParser, chars: Set[str]
 ) -> Tuple[int, int, float]:
-    """
-    Estimate IDS coverage for a set of characters.
-
-    Args:
-        parser: The parser to use
-        chars: Set of characters to check
-
-    Returns:
-        Tuple of (decomposable_count, total_count, coverage_ratio)
-    """
+    """Estimate IDS coverage for a set of characters."""
     decomposable = 0
     total = len(chars)
 

@@ -1,5 +1,4 @@
-"""
-CLUE benchmark evaluation for CNM-BERT.
+"""CLUE benchmark evaluation for CNM-BERT.
 
 Supports the following CLUE tasks:
 - AFQMC: Sentence Pair Similarity
@@ -80,7 +79,6 @@ class CLUETaskConfig:
 
 
 def get_task_config(task_name: str) -> CLUETaskConfig:
-    """Get configuration for a CLUE task."""
     if task_name not in CLUE_TASKS:
         raise ValueError(f"Unknown task: {task_name}. Available: {list(CLUE_TASKS.keys())}")
 
@@ -99,17 +97,6 @@ def load_clue_dataset(
     split: str = 'train',
     data_dir: Optional[str] = None,
 ) -> Dataset:
-    """
-    Load a CLUE dataset.
-
-    Args:
-        task_name: Name of the CLUE task
-        split: Dataset split ('train', 'validation', 'test')
-        data_dir: Optional local data directory
-
-    Returns:
-        HuggingFace Dataset
-    """
     if not HAS_DATASETS:
         raise ImportError("datasets library required. Install with: pip install datasets")
 
@@ -147,18 +134,7 @@ def preprocess_clue_example(
     tokenizer,
     max_length: int = 512,
 ) -> Dict:
-    """
-    Preprocess a single CLUE example.
-
-    Args:
-        example: Raw example dict
-        task_config: Task configuration
-        tokenizer: Tokenizer instance
-        max_length: Maximum sequence length
-
-    Returns:
-        Preprocessed example with input_ids, attention_mask, labels
-    """
+    """Preprocess a single CLUE example."""
     # Get text(s)
     if len(task_config.text_columns) == 1:
         text = example[task_config.text_columns[0]]
@@ -190,16 +166,6 @@ def compute_clue_metrics(
     task_name: str,
     eval_pred: EvalPrediction,
 ) -> Dict[str, float]:
-    """
-    Compute metrics for a CLUE task.
-
-    Args:
-        task_name: Name of the CLUE task
-        eval_pred: Evaluation predictions
-
-    Returns:
-        Dict of metric names to values
-    """
     predictions = eval_pred.predictions
     labels = eval_pred.label_ids
 
@@ -227,8 +193,7 @@ def compute_clue_metrics(
 
 
 class CLUEEvaluator:
-    """
-    Evaluator for running CLUE benchmark tasks.
+    """Evaluator for running CLUE benchmark tasks.
 
     Usage:
         evaluator = CLUEEvaluator(model, tokenizer, cnm_vocab)
@@ -246,16 +211,7 @@ class CLUEEvaluator:
         device: Optional[torch.device] = None,
         data_dir: Optional[str] = None,
     ):
-        """
-        Initialize CLUE evaluator.
-
-        Args:
-            model: CNM-BERT model (or model path)
-            tokenizer: Tokenizer instance
-            cnm_vocab: CNM vocabulary
-            device: Device to use
-            data_dir: Directory containing CLUE data files
-        """
+        """Initialize CLUE evaluator."""
         self.device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         if isinstance(model, str):
@@ -278,18 +234,7 @@ class CLUEEvaluator:
         batch_size: int = 32,
         max_length: int = 512,
     ) -> Dict[str, float]:
-        """
-        Evaluate model on a single CLUE task.
-
-        Args:
-            task_name: Name of the task
-            split: Dataset split to evaluate
-            batch_size: Evaluation batch size
-            max_length: Maximum sequence length
-
-        Returns:
-            Dict of metric names to values
-        """
+        """Evaluate model on a single CLUE task."""
         task_config = get_task_config(task_name)
 
         # Load dataset
@@ -345,12 +290,7 @@ class CLUEEvaluator:
         batch_size: int = 32,
         max_length: int = 512,
     ) -> Dict[str, Dict[str, float]]:
-        """
-        Evaluate model on all CLUE tasks.
-
-        Returns:
-            Dict mapping task names to metrics
-        """
+        """Evaluate model on all CLUE tasks."""
         results = {}
 
         for task_name in self.TASKS:
@@ -376,6 +316,5 @@ class CLUEEvaluator:
         return results
 
     def save_results(self, results: Dict, output_path: str):
-        """Save evaluation results to JSON."""
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(results, f, ensure_ascii=False, indent=2)

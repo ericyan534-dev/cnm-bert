@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Comprehensive smoke test for CNM-BERT pretraining pipeline.
+"""Comprehensive smoke test for CNM-BERT pretraining pipeline.
 
 This script runs a complete smoke test of the training infrastructure:
 - P0: Environment and GPU visibility check
@@ -362,8 +361,7 @@ def run_subrun_dataparallel(
     pretrained_bert: str,
     num_gpus: int = 8
 ) -> Dict[str, Any]:
-    """
-    Subrun A: DataParallel-like test.
+    """Subrun A: DataParallel-like test.
 
     Runs training with multiple GPUs visible but no torchrun (DataParallel path).
     """
@@ -499,8 +497,7 @@ def run_subrun_ddp(
     pretrained_bert: str,
     num_gpus: int = 8
 ) -> Dict[str, Any]:
-    """
-    Subrun B: DDP test via torchrun.
+    """Subrun B: DDP test via torchrun.
 
     Runs training with torchrun --nproc_per_node=N to test DDP path.
     """

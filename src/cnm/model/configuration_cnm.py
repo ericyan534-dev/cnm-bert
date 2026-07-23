@@ -1,5 +1,4 @@
-"""
-Configuration for CNM-BERT models.
+"""Configuration for CNM-BERT models.
 
 This module defines CNMConfig, which extends HuggingFace's BertConfig
 with additional parameters for the structural embedding components.
@@ -12,23 +11,13 @@ from transformers.configuration_utils import PretrainedConfig
 
 
 class CNMConfig(BertConfig):
-    """
-    Configuration for CNM-BERT model.
+    """Configuration for CNM-BERT model.
 
     Extends BertConfig with parameters for:
     - Tree-MLP structural encoder
     - Component/operator vocabularies
     - Fusion layer settings
     - Auxiliary loss configuration
-
-    Attributes:
-        struct_dim: Dimension of structural embeddings (default: 256)
-        tree_hidden_dim: Hidden dimension in Tree-MLP (default: 512)
-        max_tree_depth: Maximum depth for IDS trees (default: 6)
-        component_vocab_size: Size of component vocabulary
-        operator_vocab_size: Size of operator vocabulary
-        aux_loss_weight: Weight for auxiliary component prediction loss
-        fusion_type: How to fuse BERT and structural embeddings
     """
 
     model_type = "cnm-bert"
@@ -64,36 +53,6 @@ class CNMConfig(BertConfig):
         use_struct_embeddings: bool = True,
         **kwargs,
     ):
-        """
-        Initialize CNMConfig.
-
-        Args:
-            vocab_size: Size of BERT vocabulary
-            hidden_size: BERT hidden dimension
-            num_hidden_layers: Number of transformer layers
-            num_attention_heads: Number of attention heads
-            intermediate_size: FFN intermediate dimension
-            hidden_act: Activation function
-            hidden_dropout_prob: Dropout probability
-            attention_probs_dropout_prob: Attention dropout
-            max_position_embeddings: Maximum sequence length
-            type_vocab_size: Number of token types
-            initializer_range: Weight initialization range
-            layer_norm_eps: Layer norm epsilon
-            pad_token_id: Padding token ID
-            position_embedding_type: Type of position embeddings
-            use_cache: Whether to use KV cache
-            classifier_dropout: Classifier dropout (if any)
-            struct_dim: Structural embedding dimension
-            tree_hidden_dim: Tree-MLP hidden dimension
-            max_tree_depth: Maximum tree depth
-            component_vocab_size: Size of component vocabulary
-            operator_vocab_size: Size of operator vocabulary
-            aux_loss_weight: Auxiliary loss weight
-            fusion_type: Fusion method ("concat_project", "add", "gate")
-            struct_dropout: Dropout for structural embeddings
-            use_struct_embeddings: Whether to use structural embeddings
-        """
         super().__init__(
             vocab_size=vocab_size,
             hidden_size=hidden_size,
@@ -137,22 +96,7 @@ class CNMConfig(BertConfig):
         aux_loss_weight: float = 0.1,
         **kwargs,
     ) -> "CNMConfig":
-        """
-        Create CNMConfig from an existing BertConfig.
-
-        Args:
-            bert_config: Source BertConfig
-            struct_dim: Structural embedding dimension
-            tree_hidden_dim: Tree-MLP hidden dimension
-            max_tree_depth: Maximum tree depth
-            component_vocab_size: Size of component vocabulary
-            operator_vocab_size: Size of operator vocabulary
-            aux_loss_weight: Auxiliary loss weight
-            **kwargs: Additional arguments
-
-        Returns:
-            CNMConfig with BERT parameters copied
-        """
+        """Create CNMConfig from an existing BertConfig."""
         return cls(
             vocab_size=bert_config.vocab_size,
             hidden_size=bert_config.hidden_size,
@@ -178,12 +122,7 @@ class CNMConfig(BertConfig):
 
     @classmethod
     def base_chinese(cls, **kwargs) -> "CNMConfig":
-        """
-        Get config for BERT-base-chinese scale.
-
-        Returns:
-            CNMConfig for base model
-        """
+        """Get config for BERT-base-chinese scale."""
         return cls(
             vocab_size=21128,
             hidden_size=768,
@@ -195,12 +134,7 @@ class CNMConfig(BertConfig):
 
     @classmethod
     def large_chinese(cls, **kwargs) -> "CNMConfig":
-        """
-        Get config for BERT-large scale.
-
-        Returns:
-            CNMConfig for large model
-        """
+        """Get config for BERT-large scale."""
         return cls(
             vocab_size=21128,
             hidden_size=1024,

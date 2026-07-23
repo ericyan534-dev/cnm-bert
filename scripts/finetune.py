@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""
-Fine-tune CNM-BERT on CLUE benchmark tasks.
+"""Fine-tune CNM-BERT on CLUE benchmark tasks.
 
 Usage:
-    python scripts/finetune.py \
-        --model_path outputs/pretrain \
-        --task_name afqmc \
-        --output_dir outputs/finetune/afqmc
+    python scripts/finetune.py         --model_path outputs/pretrain         --task_name afqmc         --output_dir outputs/finetune/afqmc
 """
 
 import argparse

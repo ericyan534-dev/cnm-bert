@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Download and parse BabelStone IDS (Ideographic Description Sequences) data.
+"""Download and parse BabelStone IDS (Ideographic Description Sequences) data.
 
 The BabelStone IDS file contains decomposition information for CJK characters,
 mapping each character to its component structure using IDC (Ideographic
@@ -8,10 +7,6 @@ Description Characters) operators.
 
 Source: https://www.babelstone.co.uk/CJK/IDS.TXT
 Format: U+XXXX <TAB> character <TAB> IDS1 [<TAB> IDS2 ...]
-
-Example:
-    U+660E	明	⿰日月	⿱日月
-    (The character 明 can be decomposed as left-right 日月 or top-bottom 日月)
 """
 
 import argparse
@@ -57,19 +52,12 @@ def is_pua(char: str) -> bool:
 
 
 def normalize_ids_string(ids_string: str) -> List[str]:
-    """
-    Normalize an IDS string by:
+    """Normalize an IDS string by:
     1. Splitting alternatives separated by '^'
     2. Removing source annotations like $(GHTJKPV) or [GKT]
     3. Removing curly brace markers like {1} or {1+1}
     4. Removing non-IDC control characters like 〾 (U+303E)
     5. Stripping whitespace
-
-    Args:
-        ids_string: Raw IDS string from data source
-
-    Returns:
-        List of cleaned IDS alternatives
     """
     # First split by '^' to get alternatives
     alternatives = ids_string.split('^')
@@ -113,12 +101,7 @@ def normalize_ids_string(ids_string: str) -> List[str]:
 
 
 def parse_ids_line(line: str) -> Optional[tuple[str, str, List[str]]]:
-    """
-    Parse a single line from the IDS file.
-
-    Returns:
-        Tuple of (codepoint, character, list of IDS sequences) or None if invalid.
-    """
+    """Parse a single line from the IDS file."""
     line = line.strip()
 
     # Skip empty lines and comments
@@ -164,12 +147,7 @@ def parse_ids_line(line: str) -> Optional[tuple[str, str, List[str]]]:
 
 
 def download_babelstone_ids(output_path: Path, timeout: int = 60) -> Dict[str, List[str]]:
-    """
-    Download and parse BabelStone IDS data.
-
-    Returns:
-        Dictionary mapping characters to lists of IDS sequences.
-    """
+    """Download and parse BabelStone IDS data."""
     print(f"Downloading IDS data from {BABELSTONE_IDS_URL}...")
 
     try:
@@ -213,12 +191,7 @@ def download_babelstone_ids(output_path: Path, timeout: int = 60) -> Dict[str, L
 
 
 def download_chise_ids(output_path: Path, timeout: int = 60) -> Dict[str, List[str]]:
-    """
-    Download and parse CHISE IDS data (alternative source, often more complete).
-
-    Returns:
-        Dictionary mapping characters to lists of IDS sequences.
-    """
+    """Download and parse CHISE IDS data (alternative source, often more complete)."""
     ids_data: Dict[str, List[str]] = {}
 
     for url in CHISE_IDS_URLS:

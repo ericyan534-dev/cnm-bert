@@ -1,5 +1,4 @@
-"""
-Custom trainer for CNM-BERT.
+"""Custom trainer for CNM-BERT.
 
 Extends HuggingFace Trainer with:
 - Structural input handling
@@ -23,8 +22,7 @@ from cnm.data.tokenizer import CNMTokenizer
 
 
 def _unwrap_model(model: nn.Module) -> nn.Module:
-    """
-    Unwrap a model from DDP/DataParallel wrappers.
+    """Unwrap a model from DDP/DataParallel wrappers.
 
     Returns the underlying model for accessing attributes like .config.
     """
@@ -34,8 +32,7 @@ def _unwrap_model(model: nn.Module) -> nn.Module:
 
 
 class CNMTrainer(Trainer):
-    """
-    Trainer for CNM-BERT with structural embedding support.
+    """Trainer for CNM-BERT with structural embedding support.
 
     Handles:
     - Preparing structural inputs (BatchedTrees) during training
@@ -57,21 +54,6 @@ class CNMTrainer(Trainer):
         optimizers: Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler.LambdaLR] = (None, None),
         **kwargs,
     ):
-        """
-        Initialize CNMTrainer.
-
-        Args:
-            model: CNM-BERT model
-            args: Training arguments
-            cnm_vocab: CNM vocabulary for structural embeddings
-            tokenizer: CNM tokenizer
-            data_collator: Data collator
-            train_dataset: Training dataset
-            eval_dataset: Evaluation dataset
-            compute_metrics: Metrics computation function
-            callbacks: Training callbacks
-            optimizers: Optimizer and scheduler tuple
-        """
         super().__init__(
             model=model,
             args=args,
@@ -93,8 +75,7 @@ class CNMTrainer(Trainer):
         return_outputs: bool = False,
         num_items_in_batch: Optional[int] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
-        """
-        Compute loss for CNM-BERT.
+        """Compute loss for CNM-BERT.
 
         Handles structural inputs and multi-loss tracking.
         """
@@ -145,8 +126,7 @@ class CNMTrainer(Trainer):
         self,
         inputs: Dict[str, Union[torch.Tensor, Any]],
     ) -> Dict[str, Union[torch.Tensor, Any]]:
-        """
-        Prepare inputs for the model.
+        """Prepare inputs for the model.
 
         Moves tensors to device and handles BatchedTrees.
         """
@@ -159,8 +139,7 @@ class CNMTrainer(Trainer):
         return inputs
 
     def create_optimizer(self):
-        """
-        Create optimizer with separate learning rates for different parameter groups.
+        """Create optimizer with separate learning rates for different parameter groups.
 
         - BERT parameters: base learning rate
         - Tree encoder parameters: potentially higher learning rate
@@ -215,9 +194,7 @@ class CNMTrainer(Trainer):
         output_dir: Optional[str] = None,
         _internal_call: bool = False,
     ):
-        """
-        Save model, tokenizer, and CNM vocabulary.
-        """
+        """Save model, tokenizer, and CNM vocabulary."""
         super().save_model(output_dir, _internal_call)
 
         if output_dir is None:
@@ -231,9 +208,7 @@ class CNMTrainer(Trainer):
 
 
 class CNMTrainerForSequenceClassification(CNMTrainer):
-    """
-    Trainer for CNM-BERT sequence classification tasks.
-    """
+    """Trainer for CNM-BERT sequence classification tasks."""
 
     def compute_loss(
         self,
@@ -242,9 +217,6 @@ class CNMTrainerForSequenceClassification(CNMTrainer):
         return_outputs: bool = False,
         num_items_in_batch: Optional[int] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Any]]:
-        """
-        Compute classification loss.
-        """
         labels = inputs.pop("labels", None)
 
         outputs = model(**inputs)
@@ -265,15 +237,6 @@ class CNMTrainerForSequenceClassification(CNMTrainer):
 
 
 def compute_metrics_for_classification(eval_pred: EvalPrediction) -> Dict[str, float]:
-    """
-    Compute metrics for classification tasks.
-
-    Args:
-        eval_pred: Evaluation predictions
-
-    Returns:
-        Dict with accuracy and F1 scores
-    """
     predictions = eval_pred.predictions
     labels = eval_pred.label_ids
 

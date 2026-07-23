@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Pretrain CNM-BERT on Chinese corpus with MLM (Whole Word Masking) + auxiliary objectives.
+"""Pretrain CNM-BERT on Chinese corpus with MLM (Whole Word Masking) + auxiliary objectives.
 
 This script implements the CNM-BERT pretraining as described in the paper:
 - Masked Language Modeling with Whole Word Masking (WWM) for Chinese
@@ -8,16 +7,10 @@ This script implements the CNM-BERT pretraining as described in the paper:
 
 Usage:
     # Single GPU
-    python scripts/pretrain.py \
-        --train_file data/corpus \
-        --cnm_vocab_path data/ids/cnm_vocab.json \
-        --output_dir outputs/pretrain
+    python scripts/pretrain.py         --train_file data/corpus         --cnm_vocab_path data/ids/cnm_vocab.json         --output_dir outputs/pretrain
 
     # Multi-GPU with torchrun
-    torchrun --nproc_per_node=8 scripts/pretrain.py \
-        --train_file data/corpus \
-        --cnm_vocab_path data/ids/cnm_vocab.json \
-        --output_dir outputs/pretrain
+    torchrun --nproc_per_node=8 scripts/pretrain.py         --train_file data/corpus         --cnm_vocab_path data/ids/cnm_vocab.json         --output_dir outputs/pretrain
 """
 
 import argparse
@@ -226,7 +219,7 @@ def main():
     if is_main_process:
         logger.info(f"Loading training data from {args.train_file}")
     train_path = Path(args.train_file)
-    
+
     if train_path.is_dir():
         # Load from directory of JSONL files
         data_files = list(train_path.glob('**/*.jsonl'))
@@ -234,7 +227,6 @@ def main():
             raise ValueError(f"No JSONL files found in {train_path}")
         if is_main_process:
             logger.info(f"Found {len(data_files)} JSONL files")
-            # ---- Debug: sniff first few lines of each file for keys (fast fail + visibility) ----
             def sniff_jsonl_keys(paths, max_lines=5):
                 key_counter = Counter()
                 bad_json = 0
@@ -256,20 +248,19 @@ def main():
                     except Exception:
                         bad_json += 1
                 return key_counter, bad_json
-        
+
             key_counter, bad_json = sniff_jsonl_keys([str(f) for f in data_files], max_lines=3)
             logger.info(f"Schema sniff: {len(key_counter)} unique key-sets; bad_json_lines={bad_json}")
             for ks, cnt in key_counter.most_common(10):
                 logger.info(f"  keys={ks}  count={cnt}")
 
-        # ---- Normalize to a single 'text' column (robust to title/text/content/body) ----
         def _to_text(examples):
             # examples is a dict of lists because batched=True
             n = len(next(iter(examples.values())))  # batch size
             out = []
             for i in range(n):
                 t = None
-        
+
                 # Prefer existing text-like fields
                 for key in ("text", "content", "body", "article", "main_text"):
                     if key in examples and examples[key] is not None:
@@ -277,21 +268,21 @@ def main():
                         if isinstance(v, str) and v.strip():
                             t = v
                             break
-        
+
                 # If we have a title, optionally prepend it
                 title = None
                 if "title" in examples and examples["title"] is not None:
                     v = examples["title"][i]
                     if isinstance(v, str) and v.strip():
                         title = v
-        
+
                 if t is None:
                     t = title or ""  # fallback to title only or empty
                 elif title is not None and title not in t:
                     t = title + "\n" + t
-        
+
                 out.append(t)
-        
+
             return {"text": out}
 
         from datasets import concatenate_datasets
@@ -324,14 +315,13 @@ def main():
             split='train',
         )
 
-        # ---- Normalize to a single 'text' column (robust to title/text/content/body) ----
         def _to_text(examples):
             # examples is a dict of lists because batched=True
             n = len(next(iter(examples.values())))  # batch size
             out = []
             for i in range(n):
                 t = None
-        
+
                 # Prefer existing text-like fields
                 for key in ("text", "content", "body", "article", "main_text"):
                     if key in examples and examples[key] is not None:
@@ -339,38 +329,38 @@ def main():
                         if isinstance(v, str) and v.strip():
                             t = v
                             break
-        
+
                 # If we have a title, optionally prepend it
                 title = None
                 if "title" in examples and examples["title"] is not None:
                     v = examples["title"][i]
                     if isinstance(v, str) and v.strip():
                         title = v
-        
+
                 if t is None:
                     t = title or ""  # fallback to title only or empty
                 elif title is not None and title not in t:
                     t = title + "\n" + t
-        
+
                 out.append(t)
-        
+
             return {"text": out}
-        
+
         dataset = dataset.map(
             _to_text,
             batched=True,
             num_proc=1,
             desc="Normalizing text fields",
         )
-        
+
         # Keep only 'text' now that it exists
         drop_cols = [c for c in dataset.column_names if c != "text"]
         if drop_cols:
             dataset = dataset.remove_columns(drop_cols)
-        
+
         # Filter empty rows to avoid wasting runtime
         dataset = dataset.filter(lambda x: isinstance(x["text"], str) and len(x["text"].strip()) > 0)
-        
+
     if is_main_process:
         logger.info(f"Loaded {len(dataset)} training examples")
         if is_main_process:

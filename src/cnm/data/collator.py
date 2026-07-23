@@ -1,5 +1,4 @@
-"""
-Data collators for CNM-BERT training.
+"""Data collators for CNM-BERT training.
 
 Provides collators that handle:
 - Standard MLM masking
@@ -23,8 +22,7 @@ from cnm.data.vocab import CNMVocab
 
 @dataclass
 class CNMDataCollatorForPreTraining:
-    """
-    Data collator for CNM-BERT pretraining with WWM and component labels.
+    """Data collator for CNM-BERT pretraining with WWM and component labels.
 
     Handles:
     1. Whole Word Masking (WWM) for Chinese text
@@ -58,15 +56,7 @@ class CNMDataCollatorForPreTraining:
             self.cnm_vocab = self.tokenizer.cnm_vocab
 
     def __call__(self, examples: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
-        """
-        Collate examples into a batch.
-
-        Args:
-            examples: List of dicts with 'input_ids', 'attention_mask', etc.
-
-        Returns:
-            Batch dict with all necessary tensors
-        """
+        """Collate examples into a batch."""
         # Extract input_ids and attention_mask
         if isinstance(examples[0], dict):
             input_ids = [e['input_ids'] for e in examples]
@@ -139,14 +129,10 @@ class CNMDataCollatorForPreTraining:
         self,
         input_ids: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Apply MLM masking with optional WWM.
+        """Apply MLM masking with optional WWM.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-
-        Returns:
-            Tuple of (masked_input_ids, labels)
+                    input_ids: [batch, seq] Token IDs
         """
         labels = input_ids.clone()
         batch_size, seq_length = input_ids.shape
@@ -186,7 +172,6 @@ class CNMDataCollatorForPreTraining:
         return input_ids, labels
 
     def _get_special_tokens_mask(self, input_ids: torch.Tensor) -> torch.Tensor:
-        """Get mask for special tokens."""
         special_ids = {
             self.tokenizer.pad_token_id,
             self.tokenizer.cls_token_id,
@@ -206,8 +191,7 @@ class CNMDataCollatorForPreTraining:
         input_ids: torch.Tensor,
         special_tokens_mask: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Get Whole Word Masking mask.
+        """Get Whole Word Masking mask.
 
         Groups characters into words using jieba, then masks entire words.
         """
@@ -238,8 +222,7 @@ class CNMDataCollatorForPreTraining:
         return masked_indices
 
     def _get_word_boundaries(self, tokens: List[str]) -> List[Tuple[int, int]]:
-        """
-        Get word boundaries from tokens using jieba segmentation.
+        """Get word boundaries from tokens using jieba segmentation.
 
         Returns list of (start, end) tuples for each word.
         """
@@ -303,15 +286,11 @@ class CNMDataCollatorForPreTraining:
         input_ids: torch.Tensor,
         labels: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Generate component labels for auxiliary loss.
+        """Generate component labels for auxiliary loss.
 
         Args:
-            input_ids: [batch, seq] Token IDs
-            labels: [batch, seq] MLM labels (-100 for non-masked)
-
-        Returns:
-            [batch, seq, component_vocab_size] Multi-hot labels
+                    input_ids: [batch, seq] Token IDs
+                    labels: [batch, seq] MLM labels (-100 for non-masked)
         """
         batch_size, seq_length = input_ids.shape
         component_vocab_size = self.cnm_vocab.component_vocab_size
@@ -335,8 +314,7 @@ class CNMDataCollatorForPreTraining:
 
 @dataclass
 class CNMDataCollatorForFineTuning:
-    """
-    Data collator for CNM-BERT fine-tuning (no masking).
+    """Data collator for CNM-BERT fine-tuning (no masking).
 
     Only prepares structural inputs without applying MLM.
     """

@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
-"""
-Evaluate CNM-BERT on CLUE benchmark tasks.
+"""Evaluate CNM-BERT on CLUE benchmark tasks.
 
 Usage:
-    python scripts/evaluate.py \
-        --model_path outputs/finetune/afqmc \
-        --task_name afqmc
+    python scripts/evaluate.py         --model_path outputs/finetune/afqmc         --task_name afqmc
 
     # Evaluate on all tasks
-    python scripts/evaluate.py \
-        --model_path outputs/pretrain \
-        --all_tasks \
-        --output_file results.json
+    python scripts/evaluate.py         --model_path outputs/pretrain         --all_tasks         --output_file results.json
 """
 
 import argparse

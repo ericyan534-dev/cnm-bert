@@ -1,5 +1,4 @@
-"""
-Extended training arguments for CNM-BERT.
+"""Extended training arguments for CNM-BERT.
 
 Adds CNM-specific parameters to HuggingFace TrainingArguments.
 """
@@ -14,8 +13,7 @@ from transformers import TrainingArguments
 
 @dataclass
 class CNMTrainingArguments(TrainingArguments):
-    """
-    Training arguments for CNM-BERT.
+    """Training arguments for CNM-BERT.
 
     Extends TrainingArguments with CNM-specific parameters.
     """
@@ -93,9 +91,7 @@ class CNMTrainingArguments(TrainingArguments):
 
 @dataclass
 class CNMPretrainingArguments(CNMTrainingArguments):
-    """
-    Arguments specifically for CNM-BERT pretraining.
-    """
+    """Arguments specifically for CNM-BERT pretraining."""
 
     # Pretraining data
     train_file: Optional[str] = field(
@@ -149,9 +145,7 @@ class CNMPretrainingArguments(CNMTrainingArguments):
 
 @dataclass
 class CNMFinetuningArguments(CNMTrainingArguments):
-    """
-    Arguments specifically for CNM-BERT fine-tuning.
-    """
+    """Arguments specifically for CNM-BERT fine-tuning."""
 
     # Task
     task_name: Optional[str] = field(

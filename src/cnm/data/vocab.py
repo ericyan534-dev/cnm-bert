@@ -1,5 +1,4 @@
-"""
-Vocabulary management for CNM structural embeddings.
+"""Vocabulary management for CNM structural embeddings.
 
 This module manages vocabularies for:
 - Components: atomic radicals and leaf characters
@@ -30,19 +29,11 @@ FALLBACK_TOKEN = "[FALLBACK]"  # For non-decomposable tokens
 
 @dataclass
 class CNMVocab:
-    """
-    Vocabulary for CNM structural embeddings.
+    """Vocabulary for CNM structural embeddings.
 
     Manages two vocabularies:
     1. Components: Atomic elements (radicals, PUA chars, etc.)
     2. Operators: IDC characters
-
-    Attributes:
-        component_to_id: Mapping from component chars to indices
-        operator_to_id: Mapping from IDC operators to indices
-        id_to_component: Reverse mapping for components
-        id_to_operator: Reverse mapping for operators
-        char_to_tree: Mapping from characters to parsed IDSTree
     """
     component_to_id: Dict[str, int] = field(default_factory=dict)
     operator_to_id: Dict[str, int] = field(default_factory=dict)
@@ -89,22 +80,13 @@ class CNMVocab:
         corpus_chars: Set[str],
         min_component_freq: int = 1,
     ) -> "CNMVocab":
-        """
-        Build vocabulary from a corpus of characters.
+        """Build vocabulary from a corpus of characters.
 
         This method:
         1. Parses all characters in the corpus
         2. Collects all unique components and operators
         3. Builds vocabulary mappings
         4. Caches indexed trees for efficiency
-
-        Args:
-            parser: IDSParser instance with loaded IDS data
-            corpus_chars: Set of characters to include
-            min_component_freq: Minimum frequency for a component to be included
-
-        Returns:
-            CNMVocab with populated vocabularies
         """
         vocab = cls()
 
@@ -179,19 +161,15 @@ class CNMVocab:
         return self.operator_to_id[UNK_TOKEN]
 
     def get_component_id(self, component: str) -> int:
-        """Get ID for a component, defaulting to UNK."""
         return self.component_to_id.get(component, self.unk_component_id)
 
     def get_operator_id(self, operator: str) -> int:
-        """Get ID for an operator, defaulting to UNK."""
         return self.operator_to_id.get(operator, self.unk_operator_id)
 
     def get_tree(self, char: str) -> Optional[IDSTree]:
-        """Get parsed tree for a character."""
         return self.char_to_tree.get(char)
 
     def get_indexed_tree(self, char: str) -> Optional[IndexedTree]:
-        """Get indexed tree for a character."""
         return self.char_to_indexed.get(char)
 
     def batch_trees(
@@ -199,18 +177,10 @@ class CNMVocab:
         chars: List[str],
         device: Optional[torch.device] = None,
     ) -> BatchedTrees:
-        """
-        Batch multiple characters' trees into a single BatchedTrees.
+        """Batch multiple characters' trees into a single BatchedTrees.
 
         For characters not in the vocabulary, creates a simple leaf tree
         with the FALLBACK component.
-
-        Args:
-            chars: List of characters to batch
-            device: Device to place tensors on
-
-        Returns:
-            BatchedTrees containing all characters
         """
         trees: List[IndexedTree] = []
 
@@ -230,14 +200,10 @@ class CNMVocab:
         return BatchedTrees.from_trees(trees, device=device)
 
     def get_unique_chars(self, struct_ids: torch.LongTensor) -> Tuple[List[str], torch.LongTensor]:
-        """
-        Get unique characters from struct_ids tensor and their mapping.
+        """Get unique characters from struct_ids tensor and their mapping.
 
         Args:
-            struct_ids: [batch, seq] tensor of character indices
-
-        Returns:
-            Tuple of (list of unique chars, [batch, seq] mapping to unique indices)
+                    struct_ids: [batch, seq] tensor of character indices
         """
         flat = struct_ids.flatten()
         unique_ids = torch.unique(flat)
@@ -262,7 +228,6 @@ class CNMVocab:
         return unique_chars, mapping
 
     def add_component(self, component: str) -> int:
-        """Add a new component to the vocabulary."""
         if component in self.component_to_id:
             return self.component_to_id[component]
 
@@ -303,16 +268,9 @@ class CNMVocab:
         return vocab
 
     def get_component_labels(self, char: str) -> torch.Tensor:
-        """
-        Get multi-hot component labels for a character.
+        """Get multi-hot component labels for a character.
 
         Used for the auxiliary component prediction task.
-
-        Args:
-            char: The character to get labels for
-
-        Returns:
-            [component_vocab_size] binary tensor
         """
         labels = torch.zeros(self.component_vocab_size, dtype=torch.float)
 
@@ -355,15 +313,7 @@ def _deserialize_indexed_tree(data: Dict) -> IndexedTree:
 
 
 def extract_corpus_chars(texts: List[str]) -> Set[str]:
-    """
-    Extract all unique CJK characters from a corpus.
-
-    Args:
-        texts: List of text strings
-
-    Returns:
-        Set of unique CJK characters
-    """
+    """Extract all unique CJK characters from a corpus."""
     chars: Set[str] = set()
     for text in texts:
         for char in text:

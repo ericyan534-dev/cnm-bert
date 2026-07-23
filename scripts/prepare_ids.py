@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Prepare IDS data and build CNM vocabulary.
+"""Prepare IDS data and build CNM vocabulary.
 
 This script:
 1. Loads downloaded IDS data
@@ -31,8 +30,7 @@ _RE_BRACE = re.compile(r"\{[^}]*\}")
 
 
 def sanitize_ids_string(raw: str) -> str:
-    """
-    Turn non-standard IDS strings like:
+    """Turn non-standard IDS strings like:
       '^⿰亻尔$(GHTJKPV)^⿰亻尓$(Z)'
     into a clean IDS string like:
       '⿰亻尔'
@@ -73,8 +71,7 @@ def sanitize_ids_string(raw: str) -> str:
 
 
 def normalize_ids_mapping(raw) -> dict:
-    """
-    Convert many IDS JSON formats into:
+    """Convert many IDS JSON formats into:
         { "<single_char>": ["<ids_string1>", "<ids_string2>", ...] }
 
     IMPORTANT: Returns List[str] per character to preserve ALL alternatives.
@@ -236,8 +233,7 @@ def load_bert_vocab_chars(vocab_file: Path) -> Set[str]:
 
 
 def fail_fast_ids_mapping(ids_data: dict) -> None:
-    """
-    Validate IDS mapping before proceeding with parsing.
+    """Validate IDS mapping before proceeding with parsing.
     Raises RuntimeError if validation fails.
 
     Note: ids_data values are now List[str] (list of alternatives per character).
@@ -270,8 +266,7 @@ def fail_fast_ids_mapping(ids_data: dict) -> None:
 
 
 def fail_fast_parser(parser_instance: IDSParser) -> None:
-    """
-    Validate parser produces non-leaf trees for common characters.
+    """Validate parser produces non-leaf trees for common characters.
     Raises RuntimeError if validation fails.
     """
     tests = ["你", "好", "我", "中", "国"]

@@ -239,3 +239,20 @@ class TestTreeMLPEncoder:
         # Check that gradients exist
         assert encoder.component_embed.weight.grad is not None
         assert encoder.operator_embed.weight.grad is not None
+
+    @pytest.mark.parametrize("depth", [1, 2, 3])
+    def test_root_is_composed_not_left_at_padding(self, encoder, depth):
+        """The root sits at level == max_depth and must still be computed.
+
+        An off-by-one in the bottom-up loop skips it silently: the encoder then
+        returns the zero padding embedding for every composed character instead
+        of a structural representation, with no error raised.
+        """
+        tree = IDSTree.leaf("木")
+        for _ in range(depth):
+            tree = IDSTree.internal("x", "⿰", (IDSTree.leaf("木"), tree))
+
+        batched = BatchedTrees.from_trees([tree.to_indexed({"木": 10}, {"⿰": 2}, 1, 1)])
+        output = encoder(batched)
+
+        assert torch.any(output[0] != 0), f"root not composed at depth {depth}"

@@ -1,5 +1,4 @@
-"""
-Tree-MLP Encoder for Chinese character structural embeddings.
+"""Tree-MLP Encoder for Chinese character structural embeddings.
 
 This module implements a recursive neural network that encodes Chinese characters
 based on their compositional structure (IDS decomposition). The key innovation
@@ -28,8 +27,7 @@ from cnm.data.tree import BatchedTrees
 
 
 class TreeMLPEncoder(nn.Module):
-    """
-    Vectorized Tree-MLP encoder for Chinese character structure.
+    """Vectorized Tree-MLP encoder for Chinese character structure.
 
     This encoder computes embeddings for Chinese characters based on their
     IDS decomposition trees. It uses a bottom-up computation strategy:
@@ -38,12 +36,6 @@ class TreeMLPEncoder(nn.Module):
        - Gather child embeddings
        - Compute parent embedding: h = LN(MLP([op; left; right]) + left + right)
     3. Return root embeddings
-
-    Attributes:
-        component_embed: Embedding layer for atomic components
-        operator_embed: Embedding layer for IDC operators
-        combine_mlp: MLP for combining children with operator
-        layer_norm: Layer normalization for residual connection
     """
 
     def __init__(
@@ -55,17 +47,7 @@ class TreeMLPEncoder(nn.Module):
         max_depth: int = 6,
         dropout: float = 0.1,
     ):
-        """
-        Initialize the Tree-MLP encoder.
-
-        Args:
-            component_vocab_size: Size of component vocabulary
-            operator_vocab_size: Size of operator vocabulary (typically 14-16)
-            embed_dim: Dimension of embeddings (default: 256)
-            hidden_dim: Hidden dimension of MLP (default: 512)
-            max_depth: Maximum tree depth (default: 6)
-            dropout: Dropout probability (default: 0.1)
-        """
+        """Initialize the Tree-MLP encoder."""
         super().__init__()
 
         self.embed_dim = embed_dim
@@ -119,19 +101,12 @@ class TreeMLPEncoder(nn.Module):
                     nn.init.zeros_(module.weight[module.padding_idx])
 
     def forward(self, batched_trees: BatchedTrees) -> torch.Tensor:
-        """
-        Compute embeddings for a batch of character trees.
+        """Compute embeddings for a batch of character trees.
 
         This method performs vectorized bottom-up computation:
         1. Initialize all node embeddings (leaves from component_embed)
-        2. Process depth levels from max_depth-1 down to 0
+        2. Process depth levels from max_depth down to 0
         3. At each level, compute parent embeddings from children
-
-        Args:
-            batched_trees: BatchedTrees structure containing flattened trees
-
-        Returns:
-            [batch_size, embed_dim] tensor of root embeddings
         """
         # Get the device of model weights (canonical device for this replica)
         model_device = self.component_embed.weight.device
@@ -155,7 +130,9 @@ class TreeMLPEncoder(nn.Module):
         node_embeds = self.component_embed(batched_trees.component_ids)
 
         # Process depth levels bottom-up
-        for level in range(batched_trees.max_depth - 1, -1, -1):
+        # Levels run 0 (leaves) through max_depth (root), so the root is only
+        # reached when the range is inclusive of max_depth.
+        for level in range(batched_trees.max_depth, -1, -1):
             level_mask = batched_trees.get_level_mask(level)
             if not level_mask.any():
                 continue
@@ -238,48 +215,30 @@ class TreeMLPEncoder(nn.Module):
         return self.dropout(root_embeds)
 
     def forward_single(self, batched_trees: BatchedTrees, index: int) -> torch.Tensor:
-        """
-        Compute embedding for a single tree in the batch.
+        """Compute embedding for a single tree in the batch.
 
         Useful for debugging and analysis.
-
-        Args:
-            batched_trees: BatchedTrees structure
-            index: Index of the tree to compute
-
-        Returns:
-            [embed_dim] tensor of the root embedding
         """
         all_embeds = self.forward(batched_trees)
         return all_embeds[index]
 
     def get_component_embedding(self, component_id: int) -> torch.Tensor:
-        """Get the embedding for a component by ID."""
         ids = torch.tensor([component_id], device=self.component_embed.weight.device)
         return self.component_embed(ids).squeeze(0)
 
     def get_operator_embedding(self, operator_id: int) -> torch.Tensor:
-        """Get the embedding for an operator by ID."""
         ids = torch.tensor([operator_id], device=self.operator_embed.weight.device)
         return self.operator_embed(ids).squeeze(0)
 
 
 class TreeMLPEncoderWithCache(TreeMLPEncoder):
-    """
-    Tree-MLP encoder with embedding cache for efficiency.
+    """Tree-MLP encoder with embedding cache for efficiency.
 
     For inference and during training with repeated characters, this version
     caches computed embeddings to avoid redundant computation.
     """
 
     def __init__(self, *args, cache_size: int = 10000, **kwargs):
-        """
-        Initialize with cache.
-
-        Args:
-            cache_size: Maximum number of embeddings to cache
-            *args, **kwargs: Passed to TreeMLPEncoder
-        """
         super().__init__(*args, **kwargs)
         self.cache_size = cache_size
         self._cache: dict = {}
@@ -290,16 +249,6 @@ class TreeMLPEncoderWithCache(TreeMLPEncoder):
         batched_trees: BatchedTrees,
         char_ids: Optional[list] = None,
     ) -> torch.Tensor:
-        """
-        Forward pass with caching.
-
-        Args:
-            batched_trees: BatchedTrees structure
-            char_ids: Optional list of character identifiers for caching
-
-        Returns:
-            [batch_size, embed_dim] tensor of embeddings
-        """
         if char_ids is None or self.training:
             # No caching during training or if no IDs provided
             return self.forward(batched_trees)
@@ -333,7 +282,6 @@ class TreeMLPEncoderWithCache(TreeMLPEncoder):
         return result
 
     def _add_to_cache(self, char_id: str, embedding: torch.Tensor):
-        """Add an embedding to the cache."""
         if len(self._cache) >= self.cache_size:
             # Remove oldest entry
             oldest = self._cache_order.pop(0)
@@ -343,6 +291,5 @@ class TreeMLPEncoderWithCache(TreeMLPEncoder):
         self._cache_order.append(char_id)
 
     def clear_cache(self):
-        """Clear the embedding cache."""
         self._cache.clear()
         self._cache_order.clear()

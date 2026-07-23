@@ -33,7 +33,9 @@ classifiers = [
 
 dependencies = [
     "torch>=2.2.0",
-    "transformers>=4.37.0",
+    # The model subclasses the 4.x BertPreTrainedModel API (get_head_mask,
+    # positional encoder signature); 5.x removed it.
+    "transformers>=4.37.0,<5",
     "datasets>=2.16.0",
     "tokenizers>=0.15.0",
     "accelerate>=0.26.0",

@@ -227,23 +227,6 @@ configs/       pretrain.yaml, finetune.yaml, model configs
 tests/         model and Tree-MLP unit tests
 ```
 
-## Limitations
-
-- **No released checkpoints yet.** Pre-trained weights are not distributed in this
-  repository. Reproducing the reported results requires full pre-training (8×A100, ~7 days
-  at base scale).
-- **IDS coverage is incomplete.** Approximately 3% of the character vocabulary has no valid
-  IDS entry and falls back to a single learnable embedding.
-- **Canonicalization is a design choice.** IDS decompositions are genuinely ambiguous; a
-  different canonicalization policy would yield different trees and potentially different
-  results.
-- **Downstream gains are modest.** CLUE margins over the strongest external baseline
-  (+0.18/+0.19) are small. The substantive claim of this work is OOV and long-tail
-  structural robustness, not broad NLU improvement.
-- **Chinese only.** The approach relies on IDS, so it does not transfer to non-ideographic
-  scripts. Applicability to Japanese kanji and Korean hanja is untested.
-- **Lattice-BERT was not compared** because its released code repository is no longer
-  accessible.
 
 ## Citation
 

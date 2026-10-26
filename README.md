@@ -9,7 +9,7 @@ without modifying the backbone, vocabulary, or output space.
 > **Status:** Manuscript submitted to **ACL Rolling Review, 2027**.
 > Liqian Yan and Thomas Sing-wing Wu (equal contribution).
 > Affiliations: Shanghai Starriver Bilingual School · LinkScape.
-> This repository is under active development; results below are those reported in the
+> This repository is under active development, and results below are those reported in the
 > submitted manuscript.
 
 ---
